@@ -1,4 +1,4 @@
-@Library('dst-shared@master') _
+@Library("dst-shared@release/shasta-1.4") _
 rpmBuild (
     githubPushRepo: "Cray-HPE/dracut-metal-luksetcd",
     specfile: "dracut-metal-luksetcd.spec",
