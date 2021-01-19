@@ -59,11 +59,11 @@ make_etcd() {
 
     mkfs.xfs -L ${metal_etcdk8s#*=} /dev/mapper/etcdvg0-${metal_etcdk8s#*=} || warn Failed to create "${metal_etcdk8s#*=}"
 
-    mkdir -pv /var/lib/etcd /run/lib-etcd
+    mkdir -m 700 -pv /var/lib/etcd /run/lib-etcd
     printf '% -18s\t% -18s\t%s\t%s 0 2\n' "${metal_etcdk8s}" /run/lib-etcd xfs "$fsopts_xfs" >>$metal_fstab
 
     # Mount our new partitions, and create any and all overlayFS prereqs.
-    mount -a -v -T $metal_fstab && mkdir -p /run/lib-etcd/ovlwork /run/lib-etcd/overlayfs
+    mount -a -v -T $metal_fstab && mkdir -m 700 -p /run/lib-etcd/ovlwork /run/lib-etcd/overlayfs
 
     # Add our etcd overlay to the metal fstab and issue another mount.
     printf '% -18s\t% -18s\t%s\t%s 0 2\n' etcd_overlayfs /var/lib/etcd overlay lowerdir=/var/lib/etcd,upperdir=/run/lib-etcd/overlayfs,workdir=/run/lib-etcd/ovlwork >> $metal_fstab
