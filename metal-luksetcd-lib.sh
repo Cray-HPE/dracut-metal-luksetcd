@@ -1,7 +1,6 @@
 #!/bin/bash
 
 type info > /dev/null 2>&1 || . /lib/dracut-lib.sh
-type metal_die > /dev/null 2>&1 || . /lib/metal-lib.sh
 
 metal_etcdlvm=$(getarg metal.disk.etcdlvm)
 [ -z "${metal_etcdlvm}" ] && metal_etcdlvm=LABEL=ETCDLVM
@@ -50,7 +49,7 @@ make_etcd() {
             --allow-discards \
             --type=luks2 \
             --pbkdf=argon2id \
-            luksOpen "/dev/${target}" "${ETCDLVM:-ETCDLVM}" || metal_die FATAL could not open LUKS device for ETCD
+            luksOpen "/dev/${target}" "${ETCDLVM:-ETCDLVM}" || warn FATAL could not open LUKS device for ETCD
 
     # Start with etcdvg0 to allow for etcdvgN for new etcd volume groups.
     lvm pvcreate -M lvm2 "/dev/mapper/${ETCDLVM:-ETCDLVM}"
