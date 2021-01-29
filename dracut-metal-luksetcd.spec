@@ -14,7 +14,7 @@
 Name: %{namespace}-%{intranamespace_name}
 Packager: <rustydb@hpe.com>
 Release: %(echo ${BUILD_METADATA})
-Vendor: Cray Inc.
+Vendor: Cray HPE
 Version: %{x_y_z}
 Source: %{source_name}.tar.bz2
 BuildArch: noarch
@@ -29,7 +29,7 @@ Requires: dracut
 Requires: dracut-metal-mdsquash
 
 %define dracut_modules /usr/lib/dracut/modules.d
-%define url_dracut_doc /usr/share/doc/dracut-metal-luksetcd/
+%define url_dracut_doc /usr/share/doc/metal-dracut/luksetcd/
 
 %description
 
