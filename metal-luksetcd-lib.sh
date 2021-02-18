@@ -9,7 +9,7 @@ metal_etcdk8s=$(getarg metal.disk.etcdk8s)
 metal_etcdvault=$(getarg metal.disk.etcdvault)
 [ -z "${metal_etcdvault}" ] && metal_etcdvault=LABEL=ETCDVAULT
 
-fsopts_xfs=noatime,largeio,inode64,swalloc,allocsize=131072k,discard
+fsopts_xfs=noatime,largeio,inode64,swalloc,allocsize=131072k
 
 make_etcd() {
     local target="${1:-}" && shift
