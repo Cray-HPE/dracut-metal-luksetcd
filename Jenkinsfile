@@ -2,7 +2,7 @@
 rpmBuild (
     githubPushRepo: "Cray-HPE/dracut-metal-luksetcd",
     githubPushBranches: "release/.*|main",
-    master_branch: "main",
+    masterBranch: "main",
     specfile: "dracut-metal-luksetcd.spec",
     channel: "metal-ci-alerts",
     product: "csm",
