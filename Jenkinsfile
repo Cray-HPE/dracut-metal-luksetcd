@@ -1,7 +1,8 @@
 @Library("dst-shared@release/master") _
 rpmBuild (
     githubPushRepo: "Cray-HPE/dracut-metal-luksetcd",
-    githubPushBranches : "(release/.*|main)",
+    githubPushBranches: "release/.*|main",
+    master_branch: "main",
     specfile: "dracut-metal-luksetcd.spec",
     channel: "metal-ci-alerts",
     product: "csm",
