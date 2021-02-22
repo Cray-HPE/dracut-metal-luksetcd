@@ -27,7 +27,6 @@ install() {
 
     # These copy our meta files into areas the pivoted rootfs can read from - they must run before
     # the root is chrooted.
-    inst_hook pre-pivot 10 "$moddir/metal-update-fstab.sh"
     inst_hook pre-pivot 10 "$moddir/metal-update-keystore.sh"
 
     # We depend on information being gathered from the initqueue, if it fails or has nothing then
