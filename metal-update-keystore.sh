@@ -17,7 +17,7 @@ keystore=/run/initramfs/overlayfs/pki
 # Do not create parent directories with '-p'.etcd_master_key, if the parent
 # does not exist then our persistent storage hasn't mounted or is invalid and
 # we must fail.
-mkdir -m 700 $keystore || chmod 700 $keystore
+mkdir -m 700 $keystore 2>/dev/null || chmod 700 $keystore
 
 # Copy any new keys from our LUKS device(s).
 # NOTE: In the future this may need to move into a common dracut lib if other dracut mods make keys.

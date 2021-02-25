@@ -21,4 +21,6 @@ etcd_size="$(echo $etcd | awk '{print $1}')"
 etcd_disk="$(echo $etcd | awk '{print $2}')"
 if [ "${metal_nowipe:-0}" = 0 ]; then
     [ ! -f /tmp/metaletcddisk.done ] && make_etcd "$etcd_disk"
+else
+    :
 fi
