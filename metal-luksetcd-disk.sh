@@ -22,5 +22,5 @@ etcd_disk="$(echo $etcd | awk '{print $2}')"
 if [ "${metal_nowipe:-0}" = 0 ]; then
     [ ! -f /tmp/metaletcddisk.done ] && make_etcd "$etcd_disk"
 else
-    :
+    [ ! -f /tmp/metaletcddisk.done ] && unlock "$etcd_disk"
 fi
