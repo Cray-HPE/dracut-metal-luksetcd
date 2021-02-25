@@ -72,3 +72,19 @@ make_etcd() {
 
     echo 1 > /tmp/metaletcddisk.done && return
 }
+
+# this step-child function exists because we can't get kernel parameters right.
+unlock() {
+    local target="${1:-}" && shift
+    [ -z "$target" ] && info 'No etcd disk.' && return 0
+
+    local etcd_key_file='etcd.key'
+    local etcd_keystore="/run/initramfs/overlayfs/pki/${etcd_key_file}"
+    cryptsetup --key-file "${etcd_keystore}" \
+            --verbose \
+            --batch-mode \
+            --allow-discards \
+            --type=luks2 \
+            --pbkdf=argon2id \
+            luksOpen "/dev/${target}" "${ETCDLVM:-ETCDLVM}" || warn FATAL could not open LUKS device for ETCD
+}
