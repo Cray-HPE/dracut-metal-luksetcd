@@ -18,9 +18,7 @@ etcd_size="$(echo $etcd | awk '{print $1}')"
 [ "${etcd_size}" -gt 524288000000 ] && exit 0
 
 # DISKS
-etcd_disk="$(echo $etcd | awk '{print $2}')"
+export etcd_disk="$(echo $etcd | awk '{print $2}')"
 if [ "${metal_nowipe:-0}" = 0 ]; then
     [ ! -f /tmp/metaletcddisk.done ] && make_etcd "$etcd_disk"
-else
-    [ ! -f /tmp/metaletcddisk.done ] && unlock "$etcd_disk"
 fi

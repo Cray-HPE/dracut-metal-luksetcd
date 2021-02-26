@@ -42,7 +42,7 @@ Requires: dracut-metal-mdsquash
 %install
 %{__mkdir_p} %{buildroot}%{dracut_modules}/98metalluksetcd
 %{__mkdir_p} %{buildroot}%{url_dracut_doc}
-%{__install} -m 0755 metal-luksetcd-disk.sh module-setup.sh metal-update-keystore.sh metal-update-crypttab.sh parse-metal-luksetcd.sh metal-luksetcd-lib.sh metal-luksetcd-genrules.sh %{buildroot}%{dracut_modules}/98metalluksetcd
+%{__install} -m 0755 metal-luksetcd-disk.sh module-setup.sh metal-update-keystore.sh metal-luksetcd-unlock.sh parse-metal-luksetcd.sh metal-luksetcd-lib.sh metal-luksetcd-genrules.sh %{buildroot}%{dracut_modules}/98metalluksetcd
 %{__install} -m 0644 README.md %{buildroot}%{url_dracut_doc}
 
 %files
