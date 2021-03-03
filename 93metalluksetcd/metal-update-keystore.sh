@@ -1,5 +1,5 @@
 #!/bin/sh
-set -eu
+set -u
 # metal-update-keystore
 # This file copies our master-key to the overlayFS.
 # The Operating System can expect to find the key at this same location.
@@ -21,7 +21,7 @@ mkdir -m 700 $keystore 2>/dev/null || chmod 700 $keystore
 
 # Copy any new keys from our LUKS device(s).
 # NOTE: In the future this may need to move into a common dracut lib if other dracut mods make keys.
-(
+[ -d $keystore ] && (
     cd "${metal_keystore:-/tmp/metalpki}" || warn the keystores not here man, this should never happen.
     for key in *.key; do
         [ -f "${keystore}/$key" ] || cp "${metal_keystore}/${key}" $keystore

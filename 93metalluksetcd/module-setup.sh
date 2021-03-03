@@ -17,7 +17,7 @@ installkernel() {
 
 # called by dracut
 install() {
-    inst_multiple parted mkfs.xfs lsblk sort tail lvm vgcreate lvcreate cryptsetup pvs chmod
+    inst_multiple parted mkfs.xfs lsblk sort tail lvm vgcreate lvcreate cryptsetup pvs chmod basename
 
     inst_simple "$moddir/metal-luksetcd-lib.sh" "/lib/metal-luksetcd-lib.sh"
     inst_script "$moddir/metal-luksetcd-disk.sh" /sbin/metal-luksetcd-disk
@@ -25,11 +25,12 @@ install() {
     inst_hook cmdline 10 "$moddir/parse-metal-luksetcd.sh"
     inst_hook pre-udev 10 "$moddir/metal-luksetcd-genrules.sh"
 
-    # Unlock etcd; kernel params may not be enough without disabling systemd.
-    inst_hook pre-mount 10 "$moddir/metal-luksetcd-unlock.sh"
     # These copy our meta files into areas the pivoted rootfs can read from - they must run before
     # the root is chrooted.
-    inst_hook pre-pivot 10 "$moddir/metal-update-keystore.sh"
+    inst_hook pre-mount 11 "$moddir/metal-update-keystore.sh"
+
+    # Unlock etcd; kernel params may not be enough without disabling systemd.
+    inst_hook pre-mount 12 "$moddir/metal-luksetcd-unlock.sh"
 
     # We depend on information being gathered from the initqueue, if it fails or has nothing then
     # we should not run.
