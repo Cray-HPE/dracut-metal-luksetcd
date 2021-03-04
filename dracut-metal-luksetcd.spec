@@ -12,7 +12,7 @@
 ################################################################################
 
 Name: %{namespace}-%{intranamespace_name}
-Packager: <rustydb@hpe.com>
+Packager: <doomslayer@hpe.com>
 Release: %(echo ${BUILD_METADATA})
 Vendor: Cray HPE
 Version: %{x_y_z}
@@ -30,6 +30,7 @@ Requires: dracut-metal-mdsquash
 
 %define dracut_modules /usr/lib/dracut/modules.d
 %define url_dracut_doc /usr/share/doc/metal-dracut/luksetcd/
+%define module_name 93metalluksetcd
 
 %description
 
@@ -40,16 +41,15 @@ Requires: dracut-metal-mdsquash
 %build
 
 %install
-%{__mkdir_p} %{buildroot}%{dracut_modules}/98metalluksetcd
 %{__mkdir_p} %{buildroot}%{url_dracut_doc}
-%{__install} -m 0755 metal-luksetcd-disk.sh module-setup.sh metal-update-keystore.sh metal-luksetcd-unlock.sh parse-metal-luksetcd.sh metal-luksetcd-lib.sh metal-luksetcd-genrules.sh %{buildroot}%{dracut_modules}/98metalluksetcd
+%{__mkdir_p} %{buildroot}%{dracut_modules}/%{module_name}
+cp -pvrR ./%{module_name}/* %{buildroot}%{dracut_modules}/%{module_name} | awk '{print $3}' | sed "s/'//g" | sed "s|$RPM_BUILD_ROOT||g" | tee -a INSTALLED_FILES
 %{__install} -m 0644 README.md %{buildroot}%{url_dracut_doc}
 
-%files
+%files -f INSTALLED_FILES
 %defattr(0755, root, root)
 %license LICENSE
-%dir %{dracut_modules}/98metalluksetcd
-%{dracut_modules}/98metalluksetcd/*.sh
+%dir %{dracut_modules}/%{module_name}
 %dir %{url_dracut_doc}
 %attr(644, root, root) %{url_dracut_doc}/README.md
 
