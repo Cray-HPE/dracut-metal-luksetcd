@@ -10,7 +10,7 @@ type make_etcd > /dev/null 2>&1 || . /lib/metal-luksetcd-lib.sh
 # DISKS or RETRY
 # Ignore whatever was selected for the overlay by starting +1 from that index.
 disk_index=$((${metal_disks:-2} + 1))
-etcd="$(lsblk -b -l -o SIZE,NAME,TYPE,TRAN | grep -E '(sata|nvme)' | sort -h | awk '{print $1 " " $2}' | tail -n +${disk_index} | tr '\n' ' ')"
+etcd="$(lsblk -b -l -o SIZE,NAME,TYPE,TRAN | grep -E '(sata|nvme|sas)' | sort -h | awk '{print $1 " " $2}' | tail -n +${disk_index} | tr '\n' ' ')"
 [ -z "${etcd}" ] && exit 1
 etcd_size="$(echo $etcd | awk '{print $1}')"
 # 524288000000 is 0.5 TiB; required for this disk.
