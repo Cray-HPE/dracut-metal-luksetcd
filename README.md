@@ -8,7 +8,9 @@ The encrypted disk is provided with LVM, and an initial volume group dedicated t
 
 The following parameters can customize the behavior of 93luksetcd.
 
-## FSLabels
+## Customizable Parameters
+
+### FSLabel Parameters
 
 The FS labels can be changed from their default values.
 This may be desirable for cases when another LVM is being re-used.
@@ -21,7 +23,7 @@ This may be desirable for cases when another LVM is being re-used.
 
 > FSLabel for the etcd volume.
 
-## Partition or Volume Size(s)
+### Partition or Volume Size(s) Parameters
 
 ##### `metal.disk.etcdk8s.size=32`
 
@@ -31,7 +33,7 @@ This may be desirable for cases when another LVM is being re-used.
 > * min: 10
 > * max: 64
 
-### Dependencies
+## Required Parameters
 
 The following parameters are required for this module to work, however they belong to the native dracut space.
 
