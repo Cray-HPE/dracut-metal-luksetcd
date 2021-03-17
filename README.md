@@ -60,30 +60,43 @@ for the root overlays.
 
 Here is the overlayFS storage on a booted k8s-manager node. We see the `pki/` keystore.
 ```bash
-ncn-m003:~ # ls -l /run/initramfs/overlayfs/
-total 4
-drwxr-xr-x 4 root root  82 Jan 11 09:02 LiveOS
--rw-r--r-- 1 root root 403 Jan 11 09:02 fstab.metal
-drwx------ 2 root root  22 Jan 11 09:02 pki
+ncn-m001:~ # cat /etc/fstab.metal
+LABEL=ETCDK8S     	/run/lib-etcd     	xfs	noatime,largeio,inode64,swalloc,allocsize=131072k 0 2
+etcd_overlayfs    	/var/lib/etcd     	overlay	lowerdir=/var/lib/etcd,upperdir=/run/lib-etcd/overlayfs,workdir=/run/lib-etcd/ovlwork 0 2
+#
+LABEL=BOOTRAID	/metal/boot	vfat	defaults	0	0
 ```
 
 Peering into the keystore we see our PLAIN-TEXT LUKS key.
 ```bash
-ncn-m003:~ # ls -l /run/initramfs/overlayfs/pki/
+ncn-m001:~ # ls -l /run/initramfs/overlayfs/pki/
 total 4
--r-------- 1 root root 12 Jan 11 09:02 etcd.key
+-r-------- 1 root root 12 Mar  9 23:29 etcd.key
 ```
 
 ### Encryption Background
+
+#### Key Source
+
+The `12`-character keys are generated for each LUKS device by following snippet:
+
+[metal-luksetcd-lib.sh](./93metalluksetcd/metal-luksetcd-lib.sh#23-27)
+```bash
+tr < /dev/urandom -dc _A-Z-a-z-0-9 | head -c 12 > "$etcd_keystore"
+```
+
+This generation is primitive, however it is isolated. The key is generated during first-boot and never passed into console or over the network.
+
+#### LUKS Device
 
 The LUKS device uses a LUKS2 header, the new header format allowing additional
 extensions such as newer Password-Based Key Derivation Function (PBKDF) algorithms.
 
 The LUKS encryption uses argon2id PBKDF, a newer function.
 
-(excerpt from [Wiki](https://en.wikipedia.org/wiki/Argon2))
-Argon2d maximizes resistance to GPU cracking attacks. It accesses the memory array in a password dependent order, which reduces the possibility of time–memory trade-off (TMTO) attacks, but introduces possible side-channel attacks.
-Argon2i is optimized to resist side-channel attacks. It accesses the memory array in a password independent order.
+> (excerpt from [Wiki](https://en.wikipedia.org/wiki/Argon2))
+> Argon2d maximizes resistance to GPU cracking attacks. It accesses the memory array in a password dependent order, which reduces the possibility > of time–memory trade-off (TMTO) attacks, but introduces possible side-channel attacks.
+> Argon2i is optimized to resist side-channel attacks. It accesses the memory array in a password independent order.
 **Argon2id** is a hybrid version. It follows the Argon2i approach for the first half pass over memory and the Argon2d approach for subsequent passes. The Internet draft[4] recommends using Argon2id except when there are reasons to prefer one of the other two modes.
 
 ## Runtime Examples
