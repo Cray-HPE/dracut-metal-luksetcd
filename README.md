@@ -1,20 +1,60 @@
-# Metal Linux Unified Key Setup Module for etcd (LUKS)
+# METAL 93luksetcd - management of LUKS & LVM for etcd and more
 
-This module creates secure LUKS  partitions in the initramFS, during the boot of a node. Ultimately
-this provides encrypted disks for use with etcd.
+This module manages LUKS devices by encyrpting an entire disk with a securely generated key. The key is deposited in a dependent overlayFS for re-use.
 
-### Requires
+The encrypted disk is provided with LVM, and an initial volume group dedicated to etcd.
 
-See `module-setup.sh` for the full list, but this heavily depends on the `dracut-metal-mdsquash` module
-(i.e. 98metalmdsquash).
+# Parameters
 
-### Key Generation
+The following parameters can customize the behavior of 93luksetcd.
+
+## FSLabels
+
+The FS labels can be changed from their default values.
+This may be desirable for cases when another LVM is being re-used.
+
+##### `metal.disk.etcdlvm=ETCDLVM`
+
+> FSLabel for the LVM device, this is the same device as the LUKS device. This is what the key unlocks.
+
+##### `metal.disk.etcdk8s=ETCDK8S`
+
+> FSLabel for the etcd volume.
+
+## Partition or Volume Size(s)
+
+##### `metal.disk.etcdk8s.size=32`
+
+> Size of the /run/lib-etcd overlayFS in Gigabytes (`GB`).
+>
+> * default: 32
+> * min: 10
+> * max: 64
+
+### Dependencies
+
+The following parameters are required for this module to work, however they belong to the native dracut space.
+
+> See [`module-setup.sh`](./93metalluksetcd/module-setup.sh) for the full list of module and driver dependencies.
+
+##### `rd.luks=1`
+
+> Enable or disable both LUKS _and_ this module. If this parameter is omitted or set to `0` then 93luksetcd will stand-down.
+
+##### `rd.luks.cryptab=0`
+
+> Ignore any built-in crypttab and always scan for LUKS devices. **Warning**, this should be left alone.
+
+###### `rd.lvm.conf=0`
+
+> Ignore any built-in `/etc/lvm.conf` files; prevent overrides.
+
+## LUKS Key Generation
 
 The encrypted disk needs a key to unlock, this key must be securely generated and preserved.
 
 By default, the master-key is created when the disk is before being deposited in the storage array
 for the root overlays.
-
 
 Here is the overlayFS storage on a booted k8s-manager node. We see the `pki/` keystore.
 ```bash
@@ -29,14 +69,14 @@ Peering into the keystore we see our PLAIN-TEXT LUKS key.
 ```bash
 ncn-m003:~ # ls -l /run/initramfs/overlayfs/pki/
 total 4
--rw------- 1 root root 12 Jan 11 09:02 etcd.key
+-r-------- 1 root root 12 Jan 11 09:02 etcd.key
 ```
 
-### Encryption Information 
+### Encryption Background
 
 The LUKS device uses a LUKS2 header, the new header format allowing additional
 extensions such as newer Password-Based Key Derivation Function (PBKDF) algorithms.
- 
+
 The LUKS encryption uses argon2id PBKDF, a newer function.
 
 (excerpt from [Wiki](https://en.wikipedia.org/wiki/Argon2))
@@ -44,28 +84,7 @@ Argon2d maximizes resistance to GPU cracking attacks. It accesses the memory arr
 Argon2i is optimized to resist side-channel attacks. It accesses the memory array in a password independent order.
 **Argon2id** is a hybrid version. It follows the Argon2i approach for the first half pass over memory and the Argon2d approach for subsequent passes. The Internet draft[4] recommends using Argon2id except when there are reasons to prefer one of the other two modes.
 
-
-### Boot Options
-
-```
-# If named with .gpg suffix, a password prompt will appear.
-rd.luks.key-file=/pki/etcd.key:LABEL=ROOTRAID
-
-# Must be enabled
-rd.luks=1
-
-# Must be disabled to avoid surprises.
-rd.luks.cryptab=0
-
-# Must be disabled, or feel the wrath of surprise lvm.conf changes.
-rd.lvm.conf=0
-
-# Change the size; 10GB min, 64GB max.
-metal.disk.etcdk8s.size=32
-```
-
-
-### Examples
+## Runtime Examples
 
 Here's the layout on a booted k8s manager node.
 
