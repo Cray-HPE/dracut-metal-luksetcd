@@ -23,7 +23,7 @@ make_etcd() {
     (
         mkdir -p "${metal_keystore:-/tmp/metalpki}"
         tr < /dev/urandom -dc _A-Z-a-z-0-9 | head -c 12 > "$etcd_keystore"
-        chmod 600 "$etcd_keystore"
+        chmod 400 "$etcd_keystore"
     )
     [ -f "${etcd_keystore}" ] || metal_die 'FATAL could not generate master-key; temp-keystore failed to create or is invalid'
 
