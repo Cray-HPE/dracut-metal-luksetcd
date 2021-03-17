@@ -105,7 +105,7 @@ Here's the layout on a booted k8s manager node.
 
 1. Here is the disk partitions in `lsblk`:
     ```bash
-    ncn:~ # lsblk
+    ncn-m001:~ # lsblk
     NAME                MAJ:MIN RM   SIZE RO TYPE  MOUNTPOINT
     loop0                 7:0    0   3.8G  1 loop  /run/rootfsbase
     loop1                 7:1    0    30G  0 loop
@@ -132,20 +132,22 @@ Here's the layout on a booted k8s manager node.
     ```
 2. Here's the overlay, showing our disk device being used as the upperdir (persistent) overlayFS.
     ```bash
-    ncn:~ # mount | grep etcd_overlay
+    ncn-m001:~ # mount | grep etcd_overlay
     etcd_overlayfs on /var/lib/etcd type overlay (rw,relatime,lowerdir=/var/lib/etcd,upperdir=/run/lib-etcd/overlayfs,workdir=/run/lib-etcd/ovlwork)
     ```
 3. The `fstab.metal` file loaded by the `metalfs` systemd service
     ```bash
-    ncn:~ # ls -l /run/initramfs/
-    .need_shutdown  livedev         overlayfs/      thin-overlay/
-    live/           log/            squashfs/       url-lib/
-    ncn:~ # ls -l /run/initramfs/overlayfs/fstab.metal
-    -rw-r--r-- 1 root root 292 Jan 12 14:23 /run/initramfs/overlayfs/fstab.metal
-    ncn:~ # cat !$
-    cat /run/initramfs/overlayfs/fstab.metal
-    # metal-init
-    LABEL=ETCDK8S     	/run/lib-etcd     	xfs	noatime,largeio,inode64,swalloc,allocsize=131072k,discard 0 2
-    LABEL=ROOTIMG  /  ext4  defaults  0  1
+    ncn-m001:~ # cat /etc/fstab.metal
+    LABEL=ETCDK8S     	/run/lib-etcd     	xfs	noatime,largeio,inode64,swalloc,allocsize=131072k 0 2
     etcd_overlayfs    	/var/lib/etcd     	overlay	lowerdir=/var/lib/etcd,upperdir=/run/lib-etcd/overlayfs,workdir=/run/lib-etcd/ovlwork 0 2
+    #
+    LABEL=BOOTRAID	/metal/boot	vfat	defaults	0	0
+    ncn-m001:~ # systemctl status metalfs
+    ● metalfs.service - mount the metal fstab
+       Loaded: loaded (/usr/lib/systemd/system/metalfs.service; enabled; vendor preset: disabled)
+       Active: inactive (dead) since Mon 2021-03-08 12:40:24 UTC; 1 weeks 1 days ago
+     Main PID: 3161 (code=exited, status=0/SUCCESS)
+
+    Mar 08 12:40:24 ncn-m002 systemd[1]: Starting mount the metal fstab...
+    Mar 08 12:40:24 ncn-m002 systemd[1]: Started mount the metal fstab.
     ```
