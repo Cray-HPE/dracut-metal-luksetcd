@@ -6,8 +6,6 @@ metal_etcdlvm=$(getarg metal.disk.etcdlvm)
 [ -z "${metal_etcdlvm}" ] && metal_etcdlvm=LABEL=ETCDLVM
 metal_etcdk8s=$(getarg metal.disk.etcdk8s)
 [ -z "${metal_etcdk8s}" ] && metal_etcdk8s=LABEL=ETCDK8S
-metal_etcdvault=$(getarg metal.disk.etcdvault)
-[ -z "${metal_etcdvault}" ] && metal_etcdvault=LABEL=ETCDVAULT
 
 fsopts_xfs=noatime,largeio,inode64,swalloc,allocsize=131072k
 
