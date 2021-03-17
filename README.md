@@ -25,7 +25,7 @@ This may be desirable for cases when another LVM is being re-used.
 
 ##### `metal.disk.etcdk8s.size=32`
 
-> Size of the /run/lib-etcd overlayFS in Gigabytes (`GB`).
+> Size of the /run/lib-etcd overlayFS in Gigabytes (`GB`):
 >
 > * default: 32
 > * min: 10
