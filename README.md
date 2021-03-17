@@ -45,7 +45,7 @@ The following parameters are required for this module to work, however they belo
 
 > Ignore any built-in crypttab and always scan for LUKS devices. **Warning**, this should be left alone.
 
-###### `rd.lvm.conf=0`
+##### `rd.lvm.conf=0`
 
 > Ignore any built-in `/etc/lvm.conf` files; prevent overrides.
 
