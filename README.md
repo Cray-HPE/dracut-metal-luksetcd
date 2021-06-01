@@ -1,31 +1,61 @@
+<a name="metal-93luksetcd---management-of-luks-&-lvm-for-etcd-and-more"></a>
 # METAL 93luksetcd - management of LUKS & LVM for etcd and more
 
 This module manages LUKS devices by encyrpting an entire disk with a securely generated key. The key is deposited in a dependent overlayFS for re-use.
 
 The encrypted disk is provided with LVM, and an initial volume group dedicated to etcd.
 
+## Table of Contents
+
+* [Parameters](README.md#parameters)
+    * [Customizable Parameters](README.md#customizable-parameters)
+        * [FSLabel Parameters](README.md#fslabel-parameters)
+          * [`metal.disk.etcdlvm`](README.md#metaldisketcdlvm)
+          * [`metal.disk.etcdk8s`](README.md#metaldisketcdk8s)
+        * [Partition or Volume Size(s) Parameters](README.md#partition-or-volume-sizes-parameters)
+          * [`metal.disk.etcdk8s.size`](README.md#metaldisketcdk8ssize)
+    * [Required Parameters](README.md#required-parameters)
+      * [`rd.luks`](README.md#rdluks)
+      * [`rd.luks.cryptab`](README.md#rdlukscryptab)
+      * [`rd.lvm.conf`](README.md#rdlvmconf)
+    * [LUKS Key Generation](README.md#luks-key-generation)
+        * [Encryption Background](README.md#encryption-background)
+    * [Runtime Examples](README.md#runtime-examples)
+
+
+
+<a name="parameters"></a>
 # Parameters
 
 The following parameters can customize the behavior of 93luksetcd.
 
+<a name="customizable-parameters"></a>
 ## Customizable Parameters
 
+<a name="fslabel-parameters"></a>
 ### FSLabel Parameters
 
 The FS labels can be changed from their default values.
 This may be desirable for cases when another LVM is being re-used.
 
-##### `metal.disk.etcdlvm=ETCDLVM`
+<a name="metaldisketcdlvm"></a>
+##### `metal.disk.etcdlvm`
 
 > FSLabel for the LVM device, this is the same device as the LUKS device. This is what the key unlocks.
+> * default: `ETCDLVM`
 
-##### `metal.disk.etcdk8s=ETCDK8S`
+<a name="metaldisketcdk8s"></a>
+##### `metal.disk.etcdk8s`
+
 
 > FSLabel for the etcd volume.
+> * default: `ETCDK8S`
 
+<a name="partition-or-volume-sizes-parameters"></a>
 ### Partition or Volume Size(s) Parameters
 
-##### `metal.disk.etcdk8s.size=32`
+<a name="metaldisketcdk8ssize"></a>
+##### `metal.disk.etcdk8s.size`
 
 > Size of the /run/lib-etcd overlayFS in Gigabytes (`GB`):
 >
@@ -33,24 +63,32 @@ This may be desirable for cases when another LVM is being re-used.
 > * min: 10
 > * max: 64
 
+<a name="required-parameters"></a>
 ## Required Parameters
 
 The following parameters are required for this module to work, however they belong to the native dracut space.
 
 > See [`module-setup.sh`](./93metalluksetcd/module-setup.sh) for the full list of module and driver dependencies.
 
-##### `rd.luks=1`
+<a name="rdluks"></a>
+##### `rd.luks`
 
+> Required: 1
 > Enable or disable both LUKS _and_ this module. If this parameter is omitted or set to `0` then 93luksetcd will stand-down.
 
-##### `rd.luks.cryptab=0`
+<a name="rdlukscryptab"></a>
+##### `rd.luks.cryptab`
 
+> Required: 0
 > Ignore any built-in crypttab and always scan for LUKS devices. **Warning**, this should be left alone.
 
-##### `rd.lvm.conf=0`
+<a name="rd.lvm.conf"></a>
+##### `rd.lvm.conf`
 
+> Required: 0
 > Ignore any built-in `/etc/lvm.conf` files; prevent overrides.
 
+<a name="luks-key-generation"></a>
 ## LUKS Key Generation
 
 The encrypted disk needs a key to unlock, this key must be securely generated and preserved.
@@ -74,6 +112,7 @@ total 4
 -r-------- 1 root root 12 Jan 11 09:02 etcd.key
 ```
 
+<a name="encryption-background"></a>
 ### Encryption Background
 
 The LUKS device uses a LUKS2 header, the new header format allowing additional
@@ -86,6 +125,7 @@ Argon2d maximizes resistance to GPU cracking attacks. It accesses the memory arr
 Argon2i is optimized to resist side-channel attacks. It accesses the memory array in a password independent order.
 **Argon2id** is a hybrid version. It follows the Argon2i approach for the first half pass over memory and the Argon2d approach for subsequent passes. The Internet draft[4] recommends using Argon2id except when there are reasons to prefer one of the other two modes.
 
+<a name="runtime-examples"></a>
 ## Runtime Examples
 
 Here's the layout on a booted k8s manager node.
