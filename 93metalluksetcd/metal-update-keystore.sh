@@ -31,4 +31,4 @@ mkdir -m 700 $keystore 2>/dev/null || chmod 700 $keystore
 # VIP: Only root should be able to check the keys out.
 # Ensure any "new" sub-directories from tampering also conform.
 find $keystore -type d -exec chmod 700 {} \+
-find $keystore -type f -exec chmod 600 {} \+
+find $keystore -type f -exec chmod 400 {} \+
