@@ -1,6 +1,14 @@
 #!/bin/bash
 
-type info > /dev/null 2>&1 || . /lib/dracut-lib.sh
+type info >/dev/null 2>&1 || . /lib/dracut-lib.sh
+
+# Can remove this once metal-lib.sh is merged into production.
+if [ -f /lib/metal-lib.sh ]; then
+    type metal_die >/dev/null 2>&1 || . /lib/metal-lib.sh
+else
+    # legacy; load it from this lib file.
+    type metal_die >/dev/null 2>&1 || . /lib/metal-md-lib.sh
+fi
 
 metal_etcdlvm=$(getarg metal.disk.etcdlvm)
 [ -z "${metal_etcdlvm}" ] && metal_etcdlvm=LABEL=ETCDLVM
