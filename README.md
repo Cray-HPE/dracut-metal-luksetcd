@@ -74,7 +74,17 @@ The following parameters are required for this module to work, however they belo
 ##### `rd.luks`
 
 > Required: 1
-> Enable or disable both LUKS _and_ this module. If this parameter is omitted or set to `0` then 93luksetcd will stand-down.
+> Enable or disable both LUKS _and_ this module. **This must be set to `0` or omitted from the cmdline to disable the module** (short of yanking the module out of the initrd itself).
+
+```bash
+# enables luks creation
+rd.luks
+rd.luks=1
+
+# disables luks creation
+rd.luks=0
+<or. removing rd.luks from the cmdline>
+```
 
 <a name="rdlukscryptab"></a>
 ##### `rd.luks.cryptab`
