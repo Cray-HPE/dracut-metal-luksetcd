@@ -10,6 +10,10 @@ set -u
 #   2. rd.luks.key=/pki/etcd.key:LABEL=ROOTRAID must be given so the OS knows to look for the key here.
 #
 # The values above can be anything, as long as their given and refer to the same device.
+if getargbool 0 rd.luks -d -n rd_NO_LUKS; then
+    echo >2 'skipping keystore management (no LUKS)'
+    exit 0
+fi
 
 # Define our keystore; this must be the same for any dracut-metal module.
 keystore=/run/initramfs/overlayfs/pki
