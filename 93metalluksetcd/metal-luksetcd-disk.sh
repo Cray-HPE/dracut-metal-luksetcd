@@ -10,8 +10,9 @@ type metal_resolve_disk > /dev/null 2>&1 || . /lib/metal-lib.sh
 
 # DISKS or RETRY
 # Ignore whatever was selected for the overlay by starting +1 from that index.
+# MAINTAINER NOTE: Regardless of gcp mode, this will ignore any NVME partition incase they stick around after wiping.
 disk_offset=$((${metal_disks:-2} + 1))
-etcd="$(lsblk -b -l -o SIZE,NAME,TYPE,TRAN | grep -E '('"$metal_transports"')' | sort -u | awk '{print $1 "," $2}' | tail -n +${disk_offset} | tr '\n' ' ' | sed 's/ *$//')"
+etcd="$(lsblk -b -l -o SIZE,NAME,TYPE,TRAN | grep -E '('"$metal_transports"')' | sort -h | grep -vE 'p[0-9]+$' |  awk '{print $1 "," $2}' | tail -n +${disk_offset} | tr '\n' ' ' | sed 's/ *$//')"
 [ -z "${etcd}" ] && exit 1
 
 # Find the right disk.
