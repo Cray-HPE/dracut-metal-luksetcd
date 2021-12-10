@@ -2,7 +2,8 @@
 
 # called by dracut
 check() {
-    return 0
+    require_binaries basename cryptsetup lvm mkfs.xfs parted || return 1
+    return 
 }
 
 # called by dracut
@@ -17,7 +18,7 @@ installkernel() {
 
 # called by dracut
 install() {
-    inst_multiple parted mkfs.xfs lsblk sort tail lvm vgcreate lvcreate cryptsetup pvs chmod basename
+    inst_multiple basename chmod cryptsetup lsblk lvcreate lvm mkfs.xfs parted pvs sort tail vgcreate
 
     inst_simple "$moddir/metal-luksetcd-lib.sh" "/lib/metal-luksetcd-lib.sh"
     inst_script "$moddir/metal-luksetcd-disk.sh" /sbin/metal-luksetcd-disk
