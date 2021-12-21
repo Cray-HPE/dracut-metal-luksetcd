@@ -2,7 +2,7 @@
 
 # called by dracut
 check() {
-    require_binaries basename cryptsetus lvm mkfs.xfs parted || return 1
+    require_binaries basename cryptsetup lvm mkfs.xfs parted || return 1
     return 
 }
 
