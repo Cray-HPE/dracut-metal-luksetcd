@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -u
 # metal-update-keystore
 # This file copies our master-key to the overlayFS.
