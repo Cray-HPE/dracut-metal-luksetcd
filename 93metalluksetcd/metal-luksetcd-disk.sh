@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # DEVICES EXIST or DIE
 [ -f /tmp/metaletcddisk.done ] && exit 0
