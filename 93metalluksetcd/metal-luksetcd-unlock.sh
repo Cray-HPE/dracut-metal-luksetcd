@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # metal-luksetcd-unlock.sh
 
 type unlock > /dev/null 2>&1 || . /lib/metal-luksetcd-lib.sh
