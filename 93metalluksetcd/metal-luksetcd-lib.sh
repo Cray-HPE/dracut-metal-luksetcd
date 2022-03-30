@@ -15,13 +15,10 @@ metal_etcdlvm=$(getarg metal.disk.etcdlvm)
 metal_etcdk8s=$(getarg metal.disk.etcdk8s)
 [ -z "${metal_etcdk8s}" ] && metal_etcdk8s=LABEL=ETCDK8S
 
-fsopts_xfs=noatime,largeio,inode64,swalloc,allocsize=131072k
-
 make_etcd() {
     local target="${1:-}" && shift
     [ -z "$target" ] && info 'No etcd disk.' && return 0
 
-    local metal_fstab=/etc/fstab.metal
     local etcd_key_file=etcd.key
     local etcd_keystore="${metal_keystore:-/tmp/metalpki}/${etcd_key_file}"
 
@@ -65,7 +62,7 @@ make_etcd() {
     mkfs.xfs -L ${metal_etcdk8s#*=} /dev/mapper/etcdvg0-${metal_etcdk8s#*=} || warn Failed to create "${metal_etcdk8s#*=}"
 
     mkdir -m 700 -pv /var/lib/etcd /run/lib-etcd
-    printf '% -18s\t% -18s\t%s\t%s 0 2\n' "${metal_etcdk8s}" /run/lib-etcd xfs "$fsopts_xfs" >>$metal_fstab
+    printf '% -18s\t% -18s\t%s\t%s 0 2\n' "${metal_etcdk8s}" /run/lib-etcd xfs "$metal_fsopts_xfs" >>$metal_fstab
 
     # Mount our new partitions, and create any and all overlayFS prereqs.
     mount -a -v -T $metal_fstab && mkdir -m 700 -p /run/lib-etcd/ovlwork /run/lib-etcd/overlayfs
