@@ -31,9 +31,9 @@ command -v metal_die >/dev/null 2>&1 || . /lib/metal-lib.sh
 make_etcd() {
     
     # Check if the disk exists and cancel if it does.
-    local etcdk8s_scheme=${metal_etcdk8s%=*}
-    local etcdk8s_authority=${metal_etcdk8s#*=}
-    if blkid -s UUID -o value "/dev/disk/by-${etcdk8s_scheme,,}/${etcdk8s_authority^^}"; then
+    local etcdlvm_scheme=${metal_etcdlvm%=*}
+    local etcdlvm_authority=${metal_etcdlvm#*=}
+    if blkid -s UUID -o value "/dev/disk/by-${etcdlvm_scheme,,}/${etcdlvm_authority^^}"; then
         # echo 0 to signal that this module didn't need to create a disk, it existed already.
         echo 0 > /tmp/metaletcddisk.done && return
     fi
@@ -63,6 +63,7 @@ make_etcd() {
     # LUKS2 header requires multiple writes, silence warnings of race-condition when /run/cryptsetup does not exist
     # citation: https://lists.debian.org/debian-boot/2019/02/msg00100.html
     info Attempting luksFormat of "/dev/${target}" ...
+    #shellcheck disable=SC2174
     mkdir -p -m 0700 /run/cryptsetup
     cryptsetup --key-file "${etcd_keystore}" \
             --batch-mode \
@@ -88,10 +89,13 @@ make_etcd() {
 
     mkfs.xfs -L ${metal_etcdk8s#*=} /dev/mapper/etcdvg0-${metal_etcdk8s#*=} || warn Failed to create "${metal_etcdk8s#*=}"
 
+    #shellcheck disable=SC2174
     mkdir -m 700 -pv /var/lib/etcd /run/lib-etcd
+    #shellcheck disable=SC2154#shellcheck disable=SC
     printf '% -18s\t% -18s\t%s\t%s 0 2\n' "${metal_etcdk8s}" /run/lib-etcd xfs "$metal_fsopts_xfs" >>$metal_fstab
 
     # Mount our new partitions, and create any and all overlayFS prereqs.
+    #shellcheck disable=SC2174
     mount -a -v -T $metal_fstab && mkdir -m 700 -p /run/lib-etcd/ovlwork /run/lib-etcd/overlayfs
 
     # Add our etcd overlay to the metal fstab and issue another mount.

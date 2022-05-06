@@ -44,6 +44,7 @@ installkernel() {
 install() {
     inst_multiple basename chmod cryptsetup lsblk lvcreate lvm mkfs.xfs parted pvs sort tail vgcreate
 
+    #shellcheck disable=SC2154
     inst_simple "$moddir/metal-luksetcd-lib.sh" "/lib/metal-luksetcd-lib.sh"
     inst_script "$moddir/metal-luksetcd-disk.sh" /sbin/metal-luksetcd-disk
 
