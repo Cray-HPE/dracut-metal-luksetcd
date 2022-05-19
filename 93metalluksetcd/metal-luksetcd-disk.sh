@@ -18,7 +18,7 @@ etcd="$(metal_scand $disk_offset)"
 # Find the right disk.
 # 524288000000 is 0.5 TiB; required for this disk.
 # exit 0 ; this module does not need to run on this node unless it meets the requirements.
-export etcd_disk=$(metal_resolve_disk "$etcd" 524288000000) || exit 0
+export etcd_disk=$(metal_resolve_disk "$etcd" $metal_disk_small) || exit 0
 
 # Process the disk.
 if [ "${metal_nowipe:-0}" = 0 ]; then
