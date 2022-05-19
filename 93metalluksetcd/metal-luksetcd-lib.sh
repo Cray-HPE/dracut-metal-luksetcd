@@ -33,6 +33,11 @@ make_etcd() {
     # Wipe our disk.
     parted --wipesignatures --ignore-busy -s "/dev/${target}" mktable gpt
 
+    # NVME partitions have a "p" to delimit the partition number.
+    if [[ "$target" =~ "nvme" ]]; then
+        target="${target}p" 
+    fi
+
     # LUKS2 header requires multiple writes, silence warnings of race-condition when /run/cryptsetup does not exist
     # citation: https://lists.debian.org/debian-boot/2019/02/msg00100.html
     info Attempting luksFormat of "/dev/${target}" ...
