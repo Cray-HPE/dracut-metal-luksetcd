@@ -1,4 +1,26 @@
-# Copyright 2020 Hewlett Packard Enterprise Development LP
+#
+# MIT License
+#
+# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+#
 %define namespace dracut
 # disable compressing files
 %define __os_install_post %{nil}
@@ -22,11 +44,18 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}
 Group: System/Management
 License: MIT License
 Summary: Dracut module for setting up an encrypted disk with LVMs for etcd (or any secure purpose).
+Provides: metal-luksetcd
+Provides: 93metalluksetcd
 
-Requires: rpm
 Requires: coreutils
+Requires: cryptsetup
 Requires: dracut
 Requires: dracut-metal-mdsquash
+Requires: lvm2
+Requires: parted
+Requires: util-linux-systemd
+Requires: xfsprogs
+
 
 %define dracut_modules /usr/lib/dracut/modules.d
 %define url_dracut_doc /usr/share/doc/metal-dracut/luksetcd/
