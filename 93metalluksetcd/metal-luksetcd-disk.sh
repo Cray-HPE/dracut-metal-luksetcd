@@ -33,7 +33,7 @@ disks_exist || exit 1
 command -v make_etcd > /dev/null 2>&1 || . /lib/metal-luksetcd-lib.sh
 
 # Wait for the pave function to wipe the disks if the wipe is enabled.
-[ metal_paved ] || exit 1
+metal_paved || exit 1
 
 # Check if our filesystem already exists.
 etcd_disk=$(scan_etcd)
