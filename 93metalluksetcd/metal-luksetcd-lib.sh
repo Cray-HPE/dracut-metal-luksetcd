@@ -1,34 +1,83 @@
 #!/bin/bash
+#
+# MIT License
+#
+# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+#
+# metal-luksetcd-lib.sh
+[ "${metal_debug:-0}" = 0 ] || set -x
 
-type info >/dev/null 2>&1 || . /lib/dracut-lib.sh
+command -v info >/dev/null 2>&1 || . /lib/dracut-lib.sh
 
-# Can remove this once metal-lib.sh is merged into production.
-if [ -f /lib/metal-lib.sh ]; then
-    type metal_die >/dev/null 2>&1 || . /lib/metal-lib.sh
-else
-    # legacy; load it from this lib file.
-    type metal_die >/dev/null 2>&1 || . /lib/metal-md-lib.sh
-fi
+export ETCD_DONE_FILE=/tmp/metaletcddisk.done
 
-metal_etcdlvm=$(getarg metal.disk.etcdlvm)
-[ -z "${metal_etcdlvm}" ] && metal_etcdlvm=LABEL=ETCDLVM
-metal_etcdk8s=$(getarg metal.disk.etcdk8s)
-[ -z "${metal_etcdk8s}" ] && metal_etcdk8s=LABEL=ETCDK8S
+##############################################################################
+# function: scan_etcd
+#
+# Prints the etcd disk if it already exists, otherwise returns nothing.
+#
+scan_etcd() {
 
+    local etcd_disk
+    local etcdlvm_scheme=${metal_etcdlvm%=*}
+    local etcdlvm_authority=${metal_etcdlvm#*=}
+
+    if blkid -s UUID -o value "/dev/disk/by-${etcdlvm_scheme,,}/${etcdlvm_authority^^}" >/dev/null; then
+        etcd_disk="$(blkid -L ${metal_etcdlvm##*=})"
+        printf "$etcd_disk"
+    fi
+}
+
+##############################################################################
+# function: make_etcd
+#
+# Returns 0 if a disk was partitioned and encrypted, otherwise this calls 
+# metal_die with a contextual error message.
+#
+# Requires 1 argument for which disk:
+#
+#   sda
+#   nvme0
+#
+# NOTE: The disk name must be given without any partitions or `/dev` prefixed
+#       paths.
 make_etcd() {
+    
     local target="${1:-}" && shift
-    [ -z "$target" ] && info 'No etcd disk.' && return 0
+    if [ -z "$target" ]; then
+        info 'No etcd disk.'
+        echo 0 > $ETCD_DONE_FILE
+        return 0
+    fi
 
     local etcd_key_file=etcd.key
-    local etcd_keystore="${metal_keystore:-/tmp/metalpki}/${etcd_key_file}"
+    local etcd_keystore="${metal_tmp_keystore}/${etcd_key_file}"
 
     # Generate our key.
     (
-        mkdir -p "${metal_keystore:-/tmp/metalpki}"
+        mkdir -p "${metal_tmp_keystore}"
         tr < /dev/urandom -dc _A-Z-a-z-0-9 | head -c 12 > "$etcd_keystore"
         chmod 600 "$etcd_keystore"
     )
-    [ -f "${etcd_keystore}" ] || metal_die 'FATAL could not generate master-key; temp-keystore failed to create or is invalid'
+    [ -f "${etcd_keystore}" ] || metal_luksetcd_die 'FATAL could not generate master-key; temp-keystore failed to create or is invalid'
 
     # Wipe our disk.
     parted --wipesignatures --ignore-busy -s "/dev/${target}" mktable gpt
@@ -49,7 +98,7 @@ make_etcd() {
             --pbkdf=argon2id \
             --label="${metal_etcdlvm#*=}" \
             --subsystem="${metal_etcdlvm#*=}" \
-            luksFormat "/dev/${target}" || warn Could not format LUKS device ... ignoring ...
+            luksFormat "/dev/${target}" || metal_luksetcd_die 'Could not format LUKS device!'
     info Attempting luksOpen of "${ETCDLVM:-ETCDLVM}" ...
     cryptsetup --key-file "${etcd_keystore}" \
             --verbose \
@@ -57,14 +106,14 @@ make_etcd() {
             --allow-discards \
             --type=luks2 \
             --pbkdf=argon2id \
-            luksOpen "/dev/${target}" "${ETCDLVM:-ETCDLVM}" || warn FATAL could not open LUKS device for ETCD
+            luksOpen "/dev/${target}" "${ETCDLVM:-ETCDLVM}" || metal_luksetcd_die 'FATAL could not open LUKS device for ETCD'
 
     # Start with etcdvg0 to allow for etcdvgN for new etcd volume groups.
     lvm pvcreate -M lvm2 "/dev/mapper/${ETCDLVM:-ETCDLVM}"
     vgcreate etcdvg0 "/dev/mapper/${ETCDLVM:-ETCDLVM}"
     lvcreate -L "${metal_size_etcdk8s:-32}G" -n ${metal_etcdk8s#*=} etcdvg0
 
-    mkfs.xfs -L ${metal_etcdk8s#*=} /dev/mapper/etcdvg0-${metal_etcdk8s#*=} || warn Failed to create "${metal_etcdk8s#*=}"
+    mkfs.xfs -L ${metal_etcdk8s#*=} /dev/mapper/etcdvg0-${metal_etcdk8s#*=} || metal_luksetcd_die "Failed to create ${metal_etcdk8s#*=}"
 
     mkdir -m 700 -pv /var/lib/etcd /run/lib-etcd
     printf '% -18s\t% -18s\t%s\t%s 0 2\n' "${metal_etcdk8s}" /run/lib-etcd xfs "$metal_fsopts_xfs" >>$metal_fstab
@@ -78,21 +127,16 @@ make_etcd() {
     # Mount FS again, catching our new overlayFS. Failure to mount here is fatal.
     mount -a -v -T $metal_fstab
 
-    echo 1 > /tmp/metaletcddisk.done && return
+    echo 1 > $ETCD_DONE_FILE && return
 }
 
-# this step-child function exists because we can't get kernel parameters right.
-unlock() {
-    local target="${1:-}" && shift
-    [ -z "$target" ] && info 'No etcd disk.' && return 0
-
-    local etcd_key_file='etcd.key'
-    local etcd_keystore="/run/initramfs/overlayfs/pki/${etcd_key_file}"
-    cryptsetup --key-file "${etcd_keystore}" \
-            --verbose \
-            --batch-mode \
-            --allow-discards \
-            --type=luks2 \
-            --pbkdf=argon2id \
-            luksOpen "/dev/${target}" "${ETCDLVM:-ETCDLVM}" || warn FATAL could not open LUKS device for ETCD
+##############################################################################
+# function: metal_luksetcd_die
+#
+# Calls metal_die, printing this module's URL to its source code first.
+#
+metal_luksetcd_die() {
+    command -v metal_die > /dev/null 2>&1 || . /lib/metal-lib.sh
+    echo >&2 "GitHub/Docs: https://github.com/Cray-HPE/dracut-metal-luksetcd"
+    metal_die $*
 }
