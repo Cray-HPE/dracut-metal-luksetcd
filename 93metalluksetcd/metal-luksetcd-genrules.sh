@@ -27,6 +27,14 @@
 
 command -v getargbool > /dev/null 2>&1 || . /lib/dracut-lib.sh
 
+root=$(getarg root)
+case $root in 
+    kdump)
+        echo 'Not doing anything for kdump'
+        exit 0
+        ;;
+esac
+
 # Only run when luks is enabled and a deployment server is present.
 if getargbool 0 rd.luks -d -n rd_NO_LUKS; then
     if [ -n "${metal_server:-}" ]; then 
