@@ -33,7 +33,6 @@
 #
 #   2. rd.luks=1 (or rd.luks) must be set to enable this function.
 #
-set -u
 [ "${metal_debug:-0}" = 0 ] || set -x
 
 if [ $metal_noluks = 0 ]; then 
@@ -47,7 +46,18 @@ perms() {
     find $metal_keystore -type d -exec chmod 700 {} \+
     find $metal_keystore -type f -exec chmod 400 {} \+
 }
-trap perms EXIT
+
+command -v getarg > /dev/null 2>&1 || . /lib/dracut-lib.sh
+
+case "$(getarg root)" in 
+    kdump)
+        # do not do anything for kdump
+        exit 0
+        ;;
+    *)
+        trap perms EXIT
+        ;;
+esac
 
 # Do not create parent directories with '-p'.etcd_master_key, if the parent
 # does not exist then our persistent storage hasn't mounted or is invalid and

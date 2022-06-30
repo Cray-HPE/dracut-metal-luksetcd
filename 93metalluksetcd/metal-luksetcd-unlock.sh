@@ -23,10 +23,22 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 #
 # metal-luksetcd-unlock.sh
+[ "${metal_debug:-0}" = 0 ] || set -x
+
+command -v getarg > /dev/null 2>&1 || . /lib/dracut-lib.sh
+
+case "$(getarg root)" in 
+    kdump)
+        # do not do anything for kdump
+        exit 0
+        ;;
+esac
+
 if [ $metal_noluks = 0 ]; then 
     echo >&2 'skipping unlocking of LUKS devices (rd.luks=0 was set on the cmdline)'
     exit 0
 fi
+
 etcdk8s_scheme=${metal_etcdk8s%=*}
 etcdk8s_authority=${metal_etcdk8s#*=}
 
