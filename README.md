@@ -1,4 +1,3 @@
-<a name="metal-93luksetcd---management-of-luks-&-lvm-for-etcd-and-more"></a>
 # METAL 93luksetcd - management of LUKS & LVM for etcd and more
 
 This module manages LUKS devices by encyrpting an entire disk with a securely generated key. The key is deposited in a dependent overlayFS for re-use.
@@ -7,74 +6,62 @@ The encrypted disk is provided with LVM, and an initial volume group dedicated t
 
 ## Table of Contents
 
-* [Parameters](README.md#parameters)
-    * [Customizable Parameters](README.md#customizable-parameters)
-        * [FSLabel Parameters](README.md#fslabel-parameters)
-          * [`metal.disk.etcdlvm`](README.md#metaldisketcdlvm)
-          * [`metal.disk.etcdk8s`](README.md#metaldisketcdk8s)
-        * [Partition or Volume Size(s) Parameters](README.md#partition-or-volume-sizes-parameters)
-          * [`metal.disk.etcdk8s.size`](README.md#metaldisketcdk8ssize)
-    * [Required Parameters](README.md#required-parameters)
-      * [`rd.luks`](README.md#rdluks)
-      * [`rd.luks.cryptab`](README.md#rdlukscryptab)
-      * [`rd.lvm.conf`](README.md#rdlvmconf)
-    * [LUKS Key Generation](README.md#luks-key-generation)
-        * [Encryption Background](README.md#encryption-background)
-    * [Runtime Examples](README.md#runtime-examples)
+- [Parameters](README.md#parameters)
+    - [Customizable Parameters](README.md#customizable-parameters)
+        - [FSLabel Parameters](README.md#fslabel-parameters)
+            - [`metal.disk.etcdlvm`](README.md#metaldisketcdlvm)
+            - [`metal.disk.etcdk8s`](README.md#metaldisketcdk8s)
+        - [Partition or Volume Size(s) Parameters](README.md#partition-or-volume-sizes-parameters)
+            - [`metal.disk.etcdk8s.size`](README.md#metaldisketcdk8ssize)
+    - [Required Parameters](README.md#required-parameters)
+        - [`rd.luks`](README.md#rdluks)
+        - [`rd.luks.cryptab`](README.md#rdlukscryptab)
+        - [`rd.lvm.conf`](README.md#rdlvmconf)
+- [LUKS Key Generation](README.md#luks-key-generation)
+    - [Encryption Background](README.md#encryption-background)
+- [Runtime Examples](README.md#runtime-examples)
 
-
-
-<a name="parameters"></a>
-# Parameters
+## Parameters
 
 The following parameters can customize the behavior of 93luksetcd.
 
-<a name="customizable-parameters"></a>
-## Customizable Parameters
+### Customizable Parameters
 
-<a name="fslabel-parameters"></a>
-### FSLabel Parameters
+#### FSLabel Parameters
 
 The FS labels can be changed from their default values.
 This may be desirable for cases when another LVM is being re-used.
 
-<a name="metaldisketcdlvm"></a>
 ##### `metal.disk.etcdlvm`
 
 > FSLabel for the LVM device, this is the same device as the LUKS device. This is what the key unlocks.
-> * default: `ETCDLVM`
+> - `Default: ETCDLVM`
 
-<a name="metaldisketcdk8s"></a>
 ##### `metal.disk.etcdk8s`
 
-
 > FSLabel for the etcd volume.
-> * default: `ETCDK8S`
+> - `Default: ETCDK8S`
 
-<a name="partition-or-volume-sizes-parameters"></a>
-### Partition or Volume Size(s) Parameters
+#### Partition or Volume Size(s) Parameters
 
-<a name="metaldisketcdk8ssize"></a>
 ##### `metal.disk.etcdk8s.size`
 
 > Size of the /run/lib-etcd overlayFS in Gigabytes (`GB`):
->
-> * default: 32
-> * min: 10
-> * max: 64
+> - `Default: 32`
+> - `Min: 10`
+> - `Max: 64`
 
-<a name="required-parameters"></a>
-## Required Parameters
+### Required Parameters
 
 The following parameters are required for this module to work, however they belong to the native dracut space.
 
 > See [`module-setup.sh`](./93metalluksetcd/module-setup.sh) for the full list of module and driver dependencies.
 
-<a name="rdluks"></a>
 ##### `rd.luks`
 
-> Required: 1
-> Enable or disable both LUKS _and_ this module. **This must be set to `0` or omitted from the cmdline to disable the module** (short of yanking the module out of the initrd itself).
+> Enable or disable both LUKS _and_ this module. **This must be set to `0` or omitted from the 
+> cmdline to disable the module** (short of yanking the module out of the initrd itself).
+> - `Required Value: 1`
 
 ```bash
 # enables luks creation
@@ -83,22 +70,19 @@ rd.luks=1
 
 # disables luks creation
 rd.luks=0
-<or. removing rd.luks from the cmdline>
+# (or. removing rd.luks from the cmdline entirely will also disable luks creation.)
 ```
 
-<a name="rdlukscryptab"></a>
 ##### `rd.luks.cryptab`
 
-> Required: 0
 > Ignore any built-in crypttab and always scan for LUKS devices. **Warning**, this should be left alone.
+> - `Required Value: 0`
 
-<a name="rd.lvm.conf"></a>
 ##### `rd.lvm.conf`
 
-> Required: 0
 > Ignore any built-in `/etc/lvm.conf` files; prevent overrides.
+> - `Required Value: 0`
 
-<a name="luks-key-generation"></a>
 ## LUKS Key Generation
 
 The encrypted disk needs a key to unlock, this key must be securely generated and preserved.
@@ -107,6 +91,7 @@ By default, the master-key is created when the disk is before being deposited in
 for the root overlays.
 
 Here is the overlayFS storage on a booted k8s-manager node. We see the `pki/` keystore.
+
 ```bash
 ncn-m003:~ # ls -l /run/initramfs/overlayfs/
 total 4
@@ -122,7 +107,6 @@ total 4
 -r-------- 1 root root 12 Jan 11 09:02 etcd.key
 ```
 
-<a name="encryption-background"></a>
 ### Encryption Background
 
 The LUKS device uses a LUKS2 header, the new header format allowing additional
@@ -131,16 +115,19 @@ extensions such as newer Password-Based Key Derivation Function (PBKDF) algorith
 The LUKS encryption uses argon2id PBKDF, a newer function.
 
 (excerpt from [Wiki](https://en.wikipedia.org/wiki/Argon2))
-Argon2d maximizes resistance to GPU cracking attacks. It accesses the memory array in a password dependent order, which reduces the possibility of time–memory trade-off (TMTO) attacks, but introduces possible side-channel attacks.
+Argon2d maximizes resistance to GPU cracking attacks. It accesses the memory array in a password dependent order,
+which reduces the possibility of time–memory trade-off (TMTO) attacks, but introduces possible side-channel attacks.
 Argon2i is optimized to resist side-channel attacks. It accesses the memory array in a password independent order.
-**Argon2id** is a hybrid version. It follows the Argon2i approach for the first half pass over memory and the Argon2d approach for subsequent passes. The Internet draft[4] recommends using Argon2id except when there are reasons to prefer one of the other two modes.
+**Argon2id** is a hybrid version. It follows the Argon2i approach for the first half pass over memory and the Argon2d
+approach for subsequent passes. The Internet draft[4] recommends using Argon2id except when there are reasons to prefer
+one of the other two modes.
 
-<a name="runtime-examples"></a>
 ## Runtime Examples
 
 Here's the layout on a booted k8s manager node.
 
 1. Here is the disk partitions in `lsblk`:
+
     ```bash
     ncn:~ # lsblk
     NAME                MAJ:MIN RM   SIZE RO TYPE  MOUNTPOINT
@@ -167,12 +154,16 @@ Here's the layout on a booted k8s manager node.
     └─ETCDLVM           254:0    0 447.1G  0 crypt
       └─etcdvg0-ETCDK8S 254:1    0    32G  0 lvm   /run/lib-etcd
     ```
+
 2. Here's the overlay, showing our disk device being used as the upperdir (persistent) overlayFS.
+
     ```bash
     ncn:~ # mount | grep etcd_overlay
     etcd_overlayfs on /var/lib/etcd type overlay (rw,relatime,lowerdir=/var/lib/etcd,upperdir=/run/lib-etcd/overlayfs,workdir=/run/lib-etcd/ovlwork)
     ```
+
 3. The `fstab.metal` file loaded by the `metalfs` systemd service
+
     ```bash
     ncn:~ # ls -l /run/initramfs/
     .need_shutdown  livedev         overlayfs/      thin-overlay/
