@@ -21,13 +21,17 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
-NAME ?= ${GIT_REPO_NAME}
+
+ifeq ($(NAME),)
+NAME := $(shell basename $(shell pwd))
+endif
+
 ifeq ($(VERSION),)
 VERSION := $(shell git describe --tags | tr -s '-' '~' | tr -d '^v')
 endif
 
-SPEC_FILE ?= $(NAME).spec
-SOURCE_NAME ?= $(NAME)
+SPEC_FILE ?= ${NAME}.spec
+SOURCE_NAME ?= ${NAME}
 BUILD_DIR ?= $(PWD)/dist/rpmbuild
 SOURCE_PATH := ${BUILD_DIR}/SOURCES/${SOURCE_NAME}-${VERSION}.tar.bz2
 
@@ -42,7 +46,7 @@ rpm_package_source:
 	tar --transform 'flags=r;s,^,/${NAME}-${VERSION}/,' --exclude .git --exclude dist -cvjf $(SOURCE_PATH) .
 
 rpm_build_source:
-	rpmbuild --nodeps -ts $(SOURCE_PATH) --define "_topdir $(BUILD_DIR)"
+	BUILD_METADATA=$(BUILD_METADATA) rpmbuild --nodeps -ts $(SOURCE_PATH) --define "_topdir $(BUILD_DIR)"
 
 rpm_build:
-	rpmbuild --nodeps -ba $(SPEC_FILE) --define "_topdir $(BUILD_DIR)"
+	BUILD_METADATA=$(BUILD_METADATA) rpmbuild --nodeps -ba $(SPEC_FILE) --define "_topdir $(BUILD_DIR)"
