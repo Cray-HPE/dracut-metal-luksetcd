@@ -2,7 +2,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2022-2023 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -42,7 +42,7 @@ scan_etcd() {
 
     if blkid -s UUID -o value "/dev/disk/by-${etcdlvm_scheme,,}/${etcdlvm_authority^^}" >/dev/null; then
         etcd_disk="$(blkid -L ${metal_etcdlvm##*=})"
-        printf "$etcd_disk"
+        echo -n "$etcd_disk"
     fi
 }
 

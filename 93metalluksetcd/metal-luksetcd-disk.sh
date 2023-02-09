@@ -42,23 +42,30 @@ etcd_disk=$(scan_etcd)
 if [ -z "$etcd_disk" ]; then
     
     # Offset the search by the number of disks used up by the main metal dracut module.
-    disk_offset=$((${metal_disks:-2} + 1))
-    etcd="$(metal_scand $disk_offset)"
-    
+    etcd=''
+    disks="$(metal_scand)"
+    IFS=" " read -r -a pool <<< "$disks"
+    for disk in "${pool[@]}"; do
+        if [ -n "${etcd}" ]; then
+            break
+        fi
+        etcd=$(metal_resolve_disk "$disk" "$metal_disk_small")
+    done
+
     # If no disks were found, die.
     # When rd.luks is enabled, this hook-script expects to find a disk. Die if one isn't found.
     if [ -z "${etcd}" ]; then
         metal_luksetcd_die "No disks were found for ETCD"
         exit 1
+    else
+        echo >&2 "Found the following disk for etcd storage: $etcd"
     fi
     
-    # Find a disk that is at least as big as $metal_disk_small.
-    etcd_disk=$(metal_resolve_disk "$etcd" $metal_disk_small)
-    echo >&2 "Found the following disk for etcd LUKS: $etcd_disk"
-    
     # Make the etcd disk.
-    make_etcd "$etcd_disk"
+    make_etcd "$etcd"
 else
+    # Unlock the etcd disk.
+
     echo 0 > $ETCD_DONE_FILE
 fi
 
