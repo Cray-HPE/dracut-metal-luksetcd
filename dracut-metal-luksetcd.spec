@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2022-2023 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -21,29 +21,17 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
-# disable compressing files
-%define __os_install_post %{nil}
-%define x_y_z %(echo $VERSION)
-%define release_extra %(if [ -e "%{_sourcedir}/_release_extra" ] ; then cat "%{_sourcedir}/_release_extra"; else echo ""; fi)
-%define source_name %{name}
-
-################################################################################
-# Primary package definition #
-################################################################################
-
 Name: %(echo $NAME)
 Packager: <doomslayer@hpe.com>
 Release: 1
-Vendor: Cray HPE
-Version: %{x_y_z}
-Source: %{source_name}-%{version}.tar.bz2
+Vendor: Hewlett Packard Enterprise Development LP
+Version: %(echo $VERSION)
+Source: %{name}-%{version}.tar.bz2
 BuildArch: noarch
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}
 Group: System/Management
 License: MIT License
 Summary: Dracut module for setting up an encrypted disk with LVMs for etcd (or any secure purpose).
 Provides: metal-luksetcd
-Provides: 93metalluksetcd
 
 Requires: coreutils
 Requires: cryptsetup
@@ -51,19 +39,21 @@ Requires: dracut
 Requires: dracut-metal-mdsquash
 Requires: lvm2
 Requires: parted
+Requires: util-linux
 Requires: util-linux-systemd
 Requires: xfsprogs
 
 
 %define dracut_modules /usr/lib/dracut/modules.d
-%define url_dracut_doc /usr/share/doc/metal-dracut/luksetcd/
 %define module_name 93metalluksetcd
+Provides: %{module_name}
+%define url_dracut_doc /usr/share/doc/metal/%{module_name}/
 
 %description
 
 %prep
 
-%setup
+%setup -q
 
 %build
 
@@ -88,10 +78,5 @@ cp -pvrR ./%{module_name}/* %{buildroot}%{dracut_modules}/%{module_name} | awk '
 
 %posttrans
 mkinitrd -B
-
-if rpm -q kdump 2>&1 >/dev/null ; then
-    mkdumprd -f
-fi
-
 
 %changelog

@@ -25,6 +25,10 @@
 # metal-luksetcd-unlock.sh
 [ "${metal_debug:-0}" = 0 ] || set -x
 
+command -v metal_die > /dev/null 2>&1 || . /lib/metal-lib.sh
+
+exec > "${METAL_LOG_DIR}/metal-luksetcd-unlock.log" 2>&1
+
 command -v getarg > /dev/null 2>&1 || . /lib/dracut-lib.sh
 
 case "$(getarg root)" in 
@@ -58,4 +62,5 @@ if ! blkid -s UUID -o value "/dev/disk/by-${etcdk8s_scheme,,}/${etcdk8s_authorit
             --type=luks2 \
             --pbkdf=argon2id \
             luksOpen "${etcd_disk}" "${ETCDLVM:-ETCDLVM}"
+    /sbin/lvm_scan
 fi
