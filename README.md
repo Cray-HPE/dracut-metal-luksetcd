@@ -173,7 +173,7 @@ Here's the layout on a booted k8s manager node.
     ncn:~ # cat !$
     cat /run/initramfs/overlayfs/fstab.metal
     # metal-init
-    LABEL=ETCDK8S     	/run/lib-etcd     	xfs	noatime,largeio,inode64,swalloc,allocsize=131072k,discard 0 2
+    LABEL=ETCDK8S     	/run/lib-etcd     	xfs	0 2
     LABEL=ROOTIMG  /  ext4  defaults  0  1
     etcd_overlayfs    	/var/lib/etcd     	overlay	lowerdir=/var/lib/etcd,upperdir=/run/lib-etcd/overlayfs,workdir=/run/lib-etcd/ovlwork 0 2
     ```
