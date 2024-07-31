@@ -49,7 +49,7 @@ scan_etcd() {
 ##############################################################################
 # function: make_etcd
 #
-# Returns 0 if a disk was partitioned and encrypted, otherwise this calls 
+# Returns 0 if a disk was partitioned and encrypted, otherwise this calls
 # metal_die with a contextual error message.
 #
 # Requires 1 argument for which disk:
@@ -60,7 +60,7 @@ scan_etcd() {
 # NOTE: The disk name must be given without any partitions or `/dev` prefixed
 #       paths.
 make_etcd() {
-    
+
     local target="${1:-}" && shift
     if [ -z "$target" ]; then
         info 'No etcd disk.'
@@ -100,7 +100,6 @@ make_etcd() {
             --batch-mode \
             --allow-discards \
             --type=luks2 \
-            --pbkdf=argon2id \
             luksOpen "/dev/${target}" "${ETCDLVM:-ETCDLVM}" || metal_luksetcd_die 'FATAL could not open LUKS device for ETCD'
 
     # Start with etcdvg0 to allow for etcdvgN for new etcd volume groups.
