@@ -31,14 +31,14 @@ exec > "${METAL_LOG_DIR}/metal-luksetcd-unlock.log" 2>&1
 
 command -v getarg > /dev/null 2>&1 || . /lib/dracut-lib.sh
 
-case "$(getarg root)" in 
+case "$(getarg root)" in
     kdump)
         # do not do anything for kdump
         exit 0
         ;;
 esac
 
-if [ $metal_noluks = 0 ]; then 
+if [ $metal_noluks = 0 ]; then
     echo >&2 'skipping unlocking of LUKS devices (rd.luks=0 was set on the cmdline)'
     exit 0
 fi
@@ -60,7 +60,6 @@ if ! blkid -s UUID -o value "/dev/disk/by-${etcdk8s_scheme,,}/${etcdk8s_authorit
             --batch-mode \
             --allow-discards \
             --type=luks2 \
-            --pbkdf=argon2id \
             luksOpen "${etcd_disk}" "${ETCDLVM:-ETCDLVM}"
     /sbin/lvm_scan
 fi
