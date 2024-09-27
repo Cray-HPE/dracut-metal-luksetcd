@@ -67,6 +67,7 @@ mkdir -m 700 "$METAL_KEYSTORE" 2>/dev/null || chmod 700 "$METAL_KEYSTORE"
 # Copy any new keys from our LUKS device(s).
 # NOTE: In the future this may need to move into a common dracut lib if other dracut mods make keys.
 [ -d "$METAL_TMP_KEYSTORE" ] && (
+    keys=$(find /tmp -name "*.key")
     for key in $keys; do
         cp -pv "$key" "$METAL_KEYSTORE/" || echo >&2 'Failed to add etcd master key to keystore - if this node reboots it may be irrecoverable and will likely need a clean-slate/disk-pave.'
     done
