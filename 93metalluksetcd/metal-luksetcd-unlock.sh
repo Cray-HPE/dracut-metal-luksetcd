@@ -32,34 +32,34 @@ exec > "${METAL_LOG_DIR}/metal-luksetcd-unlock.log" 2>&1
 command -v getarg > /dev/null 2>&1 || . /lib/dracut-lib.sh
 
 case "$(getarg root)" in
-    kdump)
-        # do not do anything for kdump
-        exit 0
-        ;;
+  kdump)
+    # do not do anything for kdump
+    exit 0
+    ;;
 esac
 
 if [ $METAL_NOLUKS = 0 ]; then
-    echo >&2 'skipping unlocking of LUKS devices (rd.luks=0 was set on the cmdline)'
-    exit 0
+  echo >&2 'skipping unlocking of LUKS devices (rd.luks=0 was set on the cmdline)'
+  exit 0
 fi
 
 etcdk8s_scheme=${METAL_ETCDK8S%=*}
 etcdk8s_authority=${METAL_ETCDK8S#*=}
 
 # Only run on reboots, when we don't create this file from the creation method.
-if ! blkid -s UUID -o value "/dev/disk/by-${etcdk8s_scheme,,}/${etcdk8s_authority^^}" >/dev/null; then
-    etcd_disk=$(blkid -L "${METAL_ETCDLVM##*=}")
-    etcd_key_file='etcd.key'
-    etcd_keystore="$METAL_KEYSTORE/${etcd_key_file}"
-    if [ ! -f "$etcd_keystore" ]; then
-        echo >&2 "Missing etcd key at $etcd_keystore"
-        exit 1
-    fi
-    cryptsetup --key-file "${etcd_keystore}" \
-            --verbose \
-            --batch-mode \
-            --allow-discards \
-            --type=luks2 \
-            luksOpen "${etcd_disk}" "${ETCDLVM:-ETCDLVM}"
-    /sbin/lvm_scan
+if ! blkid -s UUID -o value "/dev/disk/by-${etcdk8s_scheme,,}/${etcdk8s_authority^^}" > /dev/null; then
+  etcd_disk=$(blkid -L "${METAL_ETCDLVM##*=}")
+  etcd_key_file='etcd.key'
+  etcd_keystore="$METAL_KEYSTORE/${etcd_key_file}"
+  if [ ! -f "$etcd_keystore" ]; then
+    echo >&2 "Missing etcd key at $etcd_keystore"
+    exit 1
+  fi
+  cryptsetup --key-file "${etcd_keystore}" \
+    --verbose \
+    --batch-mode \
+    --allow-discards \
+    --type=luks2 \
+    luksOpen "${etcd_disk}" "${ETCDLVM:-ETCDLVM}"
+  /sbin/lvm_scan
 fi
