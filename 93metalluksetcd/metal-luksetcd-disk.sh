@@ -40,37 +40,37 @@ etcd_disk=$(scan_etcd)
 
 # Create the ETCD disk if it didn't exist.
 if [ -z "$etcd_disk" ]; then
-    
-    # Offset the search by the number of disks used up by the main metal dracut module.
-    etcd=''
-    disks="$(metal_scand)"
-    IFS=" " read -r -a pool <<< "$disks"
-    for disk in "${pool[@]}"; do
-        if [ -n "${etcd}" ]; then
-            break
-        fi
-        etcd=$(metal_resolve_disk "$disk" "$METAL_DISK_SMALL")
-    done
 
-    # If no disks were found, die.
-    # When rd.luks is enabled, this hook-script expects to find a disk. Die if one isn't found.
-    if [ -z "${etcd}" ]; then
-        metal_luksetcd_die "No disks were found for ETCD"
-        exit 1
-    else
-        echo >&2 "Found the following disk for etcd storage: $etcd"
+  # Offset the search by the number of disks used up by the main metal dracut module.
+  etcd=''
+  disks="$(metal_scand)"
+  IFS=" " read -r -a pool <<< "$disks"
+  for disk in "${pool[@]}"; do
+    if [ -n "${etcd}" ]; then
+      break
     fi
-    
-    # Make the etcd disk.
-    make_etcd "$etcd"
-else
-    # Unlock the etcd disk.
+    etcd=$(metal_resolve_disk "$disk" "$METAL_DISK_SMALL")
+  done
 
-    echo 0 > "$ETCD_DONE_FILE"
+  # If no disks were found, die.
+  # When rd.luks is enabled, this hook-script expects to find a disk. Die if one isn't found.
+  if [ -z "${etcd}" ]; then
+    metal_luksetcd_die "No disks were found for ETCD"
+    exit 1
+  else
+    echo >&2 "Found the following disk for etcd storage: $etcd"
+  fi
+
+  # Make the etcd disk.
+  make_etcd "$etcd"
+else
+  # Unlock the etcd disk.
+
+  echo 0 > "$ETCD_DONE_FILE"
 fi
 
 # If our disk was created or unlocked, satisfy the wait_for_dev hook.
 if [ -f "$ETCD_DONE_FILE" ]; then
-    ln -s null /dev/metal-luks
-    exit 0
+  ln -s null /dev/metal-luks
+  exit 0
 fi

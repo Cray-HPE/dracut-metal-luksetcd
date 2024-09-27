@@ -26,39 +26,39 @@
 
 # called by dracut
 check() {
-    require_binaries basename blkid cryptsetup lvm lsblk mkfs.xfs mount parted partprobe || return 1
-    return 
+  require_binaries basename blkid cryptsetup lvm lsblk mkfs.xfs mount parted partprobe || return 1
+  return
 }
 
 # called by dracut
 depends() {
-    echo metalmdsquash
-    return 0
+  echo metalmdsquash
+  return 0
 }
 
 installkernel() {
-    instmods hostonly='' dm-crypt
+  instmods hostonly='' dm-crypt
 }
 
 # called by dracut
 install() {
-    inst_multiple basename chmod cryptsetup lsblk lvcreate lvm mkfs.xfs parted pvs sort tail vgcreate
+  inst_multiple basename chmod cryptsetup lsblk lvcreate lvm mkfs.xfs parted pvs sort tail vgcreate
 
-    # shellcheck disable=SC2154
-    inst_simple "$moddir/metal-luksetcd-lib.sh" "/lib/metal-luksetcd-lib.sh"
-    inst_script "$moddir/metal-luksetcd-disk.sh" /sbin/metal-luksetcd-disk
+  # shellcheck disable=SC2154
+  inst_simple "$moddir/metal-luksetcd-lib.sh" "/lib/metal-luksetcd-lib.sh"
+  inst_script "$moddir/metal-luksetcd-disk.sh" /sbin/metal-luksetcd-disk
 
-    inst_hook cmdline 10 "$moddir/parse-metal-luksetcd.sh"
-    inst_hook pre-udev 10 "$moddir/metal-luksetcd-genrules.sh"
+  inst_hook cmdline 10 "$moddir/parse-metal-luksetcd.sh"
+  inst_hook pre-udev 10 "$moddir/metal-luksetcd-genrules.sh"
 
-    # These copy our meta files into areas the pivoted rootfs can read from - they must run before
-    # the root is chrooted.
-    inst_hook pre-mount 11 "$moddir/metal-update-keystore.sh"
-    
-    # Unlock the device before mounting the rootfs
-    inst_hook pre-mount 20 "$moddir/metal-luksetcd-unlock.sh"
+  # These copy our meta files into areas the pivoted rootfs can read from - they must run before
+  # the root is chrooted.
+  inst_hook pre-mount 11 "$moddir/metal-update-keystore.sh"
 
-    # We depend on information being gathered from the initqueue, if it fails or has nothing then
-    # we should not run.
-    dracut_need_initqueue
+  # Unlock the device before mounting the rootfs
+  inst_hook pre-mount 20 "$moddir/metal-luksetcd-unlock.sh"
+
+  # We depend on information being gathered from the initqueue, if it fails or has nothing then
+  # we should not run.
+  dracut_need_initqueue
 }

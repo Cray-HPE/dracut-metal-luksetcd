@@ -36,39 +36,39 @@
 [ "${METAL_DEBUG:-0}" = 0 ] || set -x
 
 if [ "$METAL_NOLUKS" = 0 ]; then
-    echo >&2 'skipping keystore management (no LUKS; rd.luks=0 was set on the cmdline)'
-    exit 0
+  echo >&2 'skipping keystore management (no LUKS; rd.luks=0 was set on the cmdline)'
+  exit 0
 fi
 
 # Ensure any "new" sub-directories from tampering also conform.
 perms() {
-    # VIP: Only root should be able to check the keys out.
-    find "$METAL_KEYSTORE" -type d -exec chmod 700 {} \+
-    find "$METAL_KEYSTORE" -type f -exec chmod 400 {} \+
+  # VIP: Only root should be able to check the keys out.
+  find "$METAL_KEYSTORE" -type d -exec chmod 700 {} \+
+  find "$METAL_KEYSTORE" -type f -exec chmod 400 {} \+
 }
 
 command -v getarg > /dev/null 2>&1 || . /lib/dracut-lib.sh
 
-case "$(getarg root)" in 
-    kdump)
-        # do not do anything for kdump
-        exit 0
-        ;;
-    *)
-        trap perms EXIT
-        ;;
+case "$(getarg root)" in
+  kdump)
+    # do not do anything for kdump
+    exit 0
+    ;;
+  *)
+    trap perms EXIT
+    ;;
 esac
 
 # Do not create parent directories with '-p'.etcd_master_key, if the parent
 # does not exist then our persistent storage hasn't mounted or is invalid and
 # we must fail.
-mkdir -m 700 "$METAL_KEYSTORE" 2>/dev/null || chmod 700 "$METAL_KEYSTORE"
+mkdir -m 700 "$METAL_KEYSTORE" 2> /dev/null || chmod 700 "$METAL_KEYSTORE"
 
 # Copy any new keys from our LUKS device(s).
 # NOTE: In the future this may need to move into a common dracut lib if other dracut mods make keys.
 [ -d "$METAL_TMP_KEYSTORE" ] && (
-    keys=$(find /tmp -name "*.key")
-    for key in $keys; do
-        cp -pv "$key" "$METAL_KEYSTORE/" || echo >&2 'Failed to add etcd master key to keystore - if this node reboots it may be irrecoverable and will likely need a clean-slate/disk-pave.'
-    done
+  keys=$(find /tmp -name "*.key")
+  for key in $keys; do
+    cp -pv "$key" "$METAL_KEYSTORE/" || echo >&2 'Failed to add etcd master key to keystore - if this node reboots it may be irrecoverable and will likely need a clean-slate/disk-pave.'
+  done
 )
