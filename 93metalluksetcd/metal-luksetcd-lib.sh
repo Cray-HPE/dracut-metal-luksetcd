@@ -85,6 +85,7 @@ make_etcd() {
     # LUKS2 header requires multiple writes, silence warnings of race-condition when /run/cryptsetup does not exist
     # citation: https://lists.debian.org/debian-boot/2019/02/msg00100.html
     info Attempting luksFormat of "/dev/${target}" ...
+    # shellcheck disable=SC2174
     mkdir -p -m 0700 /run/cryptsetup
     cryptsetup --key-file "${etcd_keystore}" \
             --batch-mode \
@@ -109,11 +110,13 @@ make_etcd() {
 
     mkfs.xfs -L "${METAL_ETCDK8S#*=}" "/dev/mapper/etcdvg0-${METAL_ETCDK8S#*=}" || metal_luksetcd_die "Failed to create ${METAL_ETCDK8S#*=}"
 
+    # shellcheck disable=SC2174
     mkdir -m 700 -pv /var/lib/etcd /run/lib-etcd
     printf '% -18s\t% -18s\t%s\t%s 0 2\n' "${METAL_ETCDK8S}" /run/lib-etcd xfs "$METAL_FSOPTS_XFS" >> "$METAL_FSTAB"
 
     # Mount our new partitions, and create any and all overlayFS prereqs.
-    mount -a -v -T $metal_fstab && mkdir -m 700 -p /run/lib-etcd/ovlwork /run/lib-etcd/overlayfs
+    # shellcheck disable=SC2174
+    mount -a -v -T "$METAL_FSTAB" && mkdir -m 700 -p /run/lib-etcd/ovlwork /run/lib-etcd/overlayfs
 
     # Add our etcd overlay to the metal fstab and issue another mount.
     printf '% -18s\t% -18s\t%s\t%s 0 2\n' etcd_overlayfs /var/lib/etcd overlay lowerdir=/var/lib/etcd,upperdir=/run/lib-etcd/overlayfs,workdir=/run/lib-etcd/ovlwork >> "$METAL_FSTAB"
