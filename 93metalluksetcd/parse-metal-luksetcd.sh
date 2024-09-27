@@ -2,7 +2,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2022-2024 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -26,28 +26,27 @@
 command -v getarg > /dev/null 2>&1 || . /lib/dracut-lib.sh
 command -v _overlayFS_path_spec > /dev/null 2>&1 || . /lib/metal-lib.sh
 
-getargbool 0 metal.debug -d -y metal_debug && metal_debug=1
-[ "${metal_debug:-0}" = 0 ] || set -x
+getargbool 0 metal.debug -d -y METAL_DEBUG && METAL_DEBUG=1
+[ "${METAL_DEBUG:-0}" = 0 ] || set -x
 
 # Affixed size:
-metal_size_etcdk8s=$(getargnum 32 10 64 metal.disk.etcdk8s.size)
+METAL_SIZE_ETCDK8S=$(getargnum 32 10 64 metal.disk.etcdk8s.size)
 
-getargbool 0 metal.no-wipe -d -y metal_nowipe && metal_nowipe=1 || metal_nowipe=0
-getargbool 0 rd.luks -d -n rd_NO_LUKS && metal_noluks=1 || metal_noluks=0
+getargbool 0 metal.no-wipe -d -y METAL_NOWIPE && METAL_NOWIPE=1 || METAL_NOWIPE=0
+getargbool 0 rd.luks -d -n rd_NO_LUKS && METAL_NOLUKS=1 || METAL_NOLUKS=0
 
-metal_etcdlvm=$(getarg metal.disk.etcdlvm)
-[ -z "${metal_etcdlvm}" ] && metal_etcdlvm=LABEL=ETCDLVM
-metal_etcdk8s=$(getarg metal.disk.etcdk8s)
-[ -z "${metal_etcdk8s}" ] && metal_etcdk8s=LABEL=ETCDK8S
-
-export metal_etcdk8s
-export metal_etcdlvm
-export metal_noluks 
-export metal_debug
-export metal_size_etcdk8s
-export metal_nowipe
+METAL_ETCDLVM=$(getarg metal.disk.etcdlvm)
+[ -z "${METAL_ETCDLVM}" ] && METAL_ETCDLVM=LABEL=ETCDLVM
+METAL_ETCDK8S=$(getarg metal.disk.etcdk8s)
+[ -z "${METAL_ETCDK8S}" ] && METAL_ETCDK8S=LABEL=ETCDK8S
+export METAL_ETCDK8S
+export METAL_ETCDLVM
+export METAL_NOLUKS
+export METAL_DEBUG
+export METAL_SIZE_ETCDK8S
+export METAL_NOWIPE
 
 # keystores - this ought to be universal for all metal dracut modules needing private keys.
-export metal_keystore="/run/initramfs/overlayfs/pki"
-# metal_tmp_keystore MUST EXIST ON AN EPHEMERAL FILESYSTEM ; /tmp/ is cleared when the system pivots to squashFS thus it's sufficient.
-export metal_tmp_keystore=/tmp/metalpki
+export METAL_KEYSTORE="/run/initramfs/overlayfs/pki"
+# METAL_TMP_KEYSTORE MUST EXIST ON AN EPHEMERAL FILESYSTEM ; /tmp/ is cleared when the system pivots to squashFS thus it's sufficient.
+export METAL_TMP_KEYSTORE=/tmp/metalpki

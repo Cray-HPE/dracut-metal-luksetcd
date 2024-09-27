@@ -2,7 +2,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2022-2024 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 #
 # metal-luksetcd-disk.sh
-[ "${metal_debug:-0}" = 0 ] || set -x
+[ "${METAL_DEBUG:-0}" = 0 ] || set -x
 
 # Wait for disks to exist.
 command -v disks_exist > /dev/null 2>&1 || . /lib/metal-lib.sh
@@ -49,7 +49,7 @@ if [ -z "$etcd_disk" ]; then
         if [ -n "${etcd}" ]; then
             break
         fi
-        etcd=$(metal_resolve_disk "$disk" "$metal_disk_small")
+        etcd=$(metal_resolve_disk "$disk" "$METAL_DISK_SMALL")
     done
 
     # If no disks were found, die.
@@ -66,11 +66,11 @@ if [ -z "$etcd_disk" ]; then
 else
     # Unlock the etcd disk.
 
-    echo 0 > $ETCD_DONE_FILE
+    echo 0 > "$ETCD_DONE_FILE"
 fi
 
 # If our disk was created or unlocked, satisfy the wait_for_dev hook.
-if [ -f $ETCD_DONE_FILE ]; then
+if [ -f "$ETCD_DONE_FILE" ]; then
     ln -s null /dev/metal-luks
     exit 0
 fi

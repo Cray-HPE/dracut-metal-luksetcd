@@ -2,7 +2,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2022-2023 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2022-2024 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 #
 # metal-luksetcd-lib.sh
-[ "${metal_debug:-0}" = 0 ] || set -x
+[ "${METAL_DEBUG:-0}" = 0 ] || set -x
 
 command -v info >/dev/null 2>&1 || . /lib/dracut-lib.sh
 
@@ -39,9 +39,11 @@ scan_etcd() {
     local etcd_disk
     local etcdlvm_scheme=${metal_etcdlvm%=*}
     local etcdlvm_authority=${metal_etcdlvm#*=}
+    local etcdlvm_scheme=${METAL_ETCDLVM%=*}
+    local etcdlvm_authority=${METAL_ETCDLVM#*=}
 
     if blkid -s UUID -o value "/dev/disk/by-${etcdlvm_scheme,,}/${etcdlvm_authority^^}" >/dev/null; then
-        etcd_disk="$(blkid -L ${metal_etcdlvm##*=})"
+        etcd_disk="$(blkid -L "${METAL_ETCDLVM##*=}")"
         echo -n "$etcd_disk"
     fi
 }
@@ -69,11 +71,11 @@ make_etcd() {
     fi
 
     local etcd_key_file=etcd.key
-    local etcd_keystore="${metal_tmp_keystore}/${etcd_key_file}"
+    local etcd_keystore="${METAL_TMP_KEYSTORE}/${etcd_key_file}"
 
     # Generate our key.
     (
-        mkdir -p "${metal_tmp_keystore}"
+        mkdir -p "${METAL_TMP_KEYSTORE}"
         tr < /dev/urandom -dc _A-Z-a-z-0-9 | head -c 12 > "$etcd_keystore"
         chmod 600 "$etcd_keystore"
     )
@@ -91,8 +93,8 @@ make_etcd() {
             --verbose \
             --type=luks2 \
             --pbkdf=argon2id \
-            --label="${metal_etcdlvm#*=}" \
-            --subsystem="${metal_etcdlvm#*=}" \
+            --label="${METAL_ETCDLVM#*=}" \
+            --subsystem="${METAL_ETCDLVM#*=}" \
             luksFormat "/dev/${target}" || metal_luksetcd_die 'Could not format LUKS device!'
     info Attempting luksOpen of "${ETCDLVM:-ETCDLVM}" ...
     cryptsetup --key-file "${etcd_keystore}" \
@@ -105,21 +107,21 @@ make_etcd() {
     # Start with etcdvg0 to allow for etcdvgN for new etcd volume groups.
     lvm pvcreate -M lvm2 "/dev/mapper/${ETCDLVM:-ETCDLVM}"
     vgcreate etcdvg0 "/dev/mapper/${ETCDLVM:-ETCDLVM}"
-    lvcreate -L "${metal_size_etcdk8s:-32}G" -n ${metal_etcdk8s#*=} etcdvg0
+    lvcreate -L "${METAL_SIZE_ETCDK8S:-32}G" -n ${METAL_ETCDK8S#*=} etcdvg0
 
-    mkfs.xfs -L ${metal_etcdk8s#*=} /dev/mapper/etcdvg0-${metal_etcdk8s#*=} || metal_luksetcd_die "Failed to create ${metal_etcdk8s#*=}"
+    mkfs.xfs -L "${METAL_ETCDK8S#*=}" "/dev/mapper/etcdvg0-${METAL_ETCDK8S#*=}" || metal_luksetcd_die "Failed to create ${METAL_ETCDK8S#*=}"
 
     mkdir -m 700 -pv /var/lib/etcd /run/lib-etcd
-    printf '% -18s\t% -18s\t%s\t%s 0 2\n' "${metal_etcdk8s}" /run/lib-etcd xfs "$metal_fsopts_xfs" >>$metal_fstab
+    printf '% -18s\t% -18s\t%s\t%s 0 2\n' "${METAL_ETCDK8S}" /run/lib-etcd xfs "$METAL_FSOPTS_XFS" >> "$METAL_FSTAB"
 
     # Mount our new partitions, and create any and all overlayFS prereqs.
     mount -a -v -T $metal_fstab && mkdir -m 700 -p /run/lib-etcd/ovlwork /run/lib-etcd/overlayfs
 
     # Add our etcd overlay to the metal fstab and issue another mount.
-    printf '% -18s\t% -18s\t%s\t%s 0 2\n' etcd_overlayfs /var/lib/etcd overlay lowerdir=/var/lib/etcd,upperdir=/run/lib-etcd/overlayfs,workdir=/run/lib-etcd/ovlwork >> $metal_fstab
+    printf '% -18s\t% -18s\t%s\t%s 0 2\n' etcd_overlayfs /var/lib/etcd overlay lowerdir=/var/lib/etcd,upperdir=/run/lib-etcd/overlayfs,workdir=/run/lib-etcd/ovlwork >> "$METAL_FSTAB"
 
     # Mount FS again, catching our new overlayFS. Failure to mount here is fatal.
-    mount -a -v -T $metal_fstab
+    mount -a -v -T "$METAL_FSTAB"
 
     echo 1 > $ETCD_DONE_FILE && return
 }
