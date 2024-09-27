@@ -132,5 +132,5 @@ make_etcd() {
 metal_luksetcd_die() {
     command -v metal_die > /dev/null 2>&1 || . /lib/metal-lib.sh
     echo >&2 "GitHub/Docs: https://github.com/Cray-HPE/dracut-metal-luksetcd"
-    metal_die $*
+    metal_die "$@"
 }
