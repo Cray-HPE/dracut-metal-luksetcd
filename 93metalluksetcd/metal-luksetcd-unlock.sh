@@ -43,8 +43,6 @@ if [ $METAL_NOLUKS = 0 ]; then
     exit 0
 fi
 
-etcdk8s_scheme=${metal_etcdk8s%=*}
-etcdk8s_authority=${metal_etcdk8s#*=}
 etcdk8s_scheme=${METAL_ETCDK8S%=*}
 etcdk8s_authority=${METAL_ETCDK8S#*=}
 

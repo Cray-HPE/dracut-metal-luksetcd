@@ -37,8 +37,6 @@ export ETCD_DONE_FILE=/tmp/metaletcddisk.done
 scan_etcd() {
 
     local etcd_disk
-    local etcdlvm_scheme=${metal_etcdlvm%=*}
-    local etcdlvm_authority=${metal_etcdlvm#*=}
     local etcdlvm_scheme=${METAL_ETCDLVM%=*}
     local etcdlvm_authority=${METAL_ETCDLVM#*=}
 
