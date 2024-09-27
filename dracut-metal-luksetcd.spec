@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2022-2023 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2022-2024 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -36,7 +36,7 @@ Provides: metal-luksetcd
 Requires: coreutils
 Requires: cryptsetup
 Requires: dracut
-Requires: dracut-metal-mdsquash
+Requires: dracut-metal-mdsquash >= 2.5.0
 Requires: lvm2
 Requires: parted
 Requires: util-linux

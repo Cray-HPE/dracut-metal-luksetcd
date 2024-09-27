@@ -2,7 +2,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2022-2024 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 #
 # metal-luksetcd-genrules.sh
-[ "${metal_debug:-0}" = 0 ] || set -x
+[ "${METAL_DEBUG:-0}" = 0 ] || set -x
 
 command -v getarg > /dev/null 2>&1 || . /lib/dracut-lib.sh
 

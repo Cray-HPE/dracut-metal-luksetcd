@@ -2,7 +2,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2022-2024 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -33,9 +33,9 @@
 #
 #   2. rd.luks=1 (or rd.luks) must be set to enable this function.
 #
-[ "${metal_debug:-0}" = 0 ] || set -x
+[ "${METAL_DEBUG:-0}" = 0 ] || set -x
 
-if [ $metal_noluks = 0 ]; then 
+if [ "$METAL_NOLUKS" = 0 ]; then
     echo >&2 'skipping keystore management (no LUKS; rd.luks=0 was set on the cmdline)'
     exit 0
 fi
@@ -43,8 +43,8 @@ fi
 # Ensure any "new" sub-directories from tampering also conform.
 perms() {
     # VIP: Only root should be able to check the keys out.
-    find $metal_keystore -type d -exec chmod 700 {} \+
-    find $metal_keystore -type f -exec chmod 400 {} \+
+    find "$METAL_KEYSTORE" -type d -exec chmod 700 {} \+
+    find "$METAL_KEYSTORE" -type f -exec chmod 400 {} \+
 }
 
 command -v getarg > /dev/null 2>&1 || . /lib/dracut-lib.sh
@@ -62,13 +62,12 @@ esac
 # Do not create parent directories with '-p'.etcd_master_key, if the parent
 # does not exist then our persistent storage hasn't mounted or is invalid and
 # we must fail.
-mkdir -m 700 $metal_keystore 2>/dev/null || chmod 700 $metal_keystore
+mkdir -m 700 "$METAL_KEYSTORE" 2>/dev/null || chmod 700 "$METAL_KEYSTORE"
 
 # Copy any new keys from our LUKS device(s).
 # NOTE: In the future this may need to move into a common dracut lib if other dracut mods make keys.
-[ -d $metal_tmp_keystore ] && (
-    keys=$(find /tmp -name *.key)
+[ -d "$METAL_TMP_KEYSTORE" ] && (
     for key in $keys; do
-        cp -pv "$key" "$metal_keystore/" || echo >&2 'Failed to add etcd master key to keystore - if this node reboots it may be irrecoverable and will likely need a clean-slate/disk-pave.'
+        cp -pv "$key" "$METAL_KEYSTORE/" || echo >&2 'Failed to add etcd master key to keystore - if this node reboots it may be irrecoverable and will likely need a clean-slate/disk-pave.'
     done
 )
